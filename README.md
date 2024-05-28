@@ -18,8 +18,8 @@ This application is designed to help women during menopause by monitoring their 
 ### Installation
 1. **Clone the repository**:
     ```sh
-    git clone https://github.com/yourusername/menopause-lifestyle-monitor.git
-    cd menopause-lifestyle-monitor
+    git clone https://github.com/Diana1800/MLS.git
+    cd MLS
     ```
 
 2. **Create a virtual environment**:
@@ -69,7 +69,8 @@ We welcome contributions to enhance the app. Here’s how you can help:
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
 
 ## Contact
-For any questions or feedback, please reach out to [your-email@example.com](mailto:your-email@example.com).
+For any questions or feedback, please reach out to [lifestyle.menopause@gmail.com](mailto:lifestyle.menopause@gmail.com).
+https://menopause.social
 
 ---
 
