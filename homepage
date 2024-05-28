@@ -1,21 +1,112 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Welcome</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-</head>
-<body>
-    <div class="container text-center mt-5">
-        <h1 class="display-4">Welcome to the Women's Hub</h1>
-        <p class="lead">
-            Happy to have you here at the hub for women with support, advice, and personal adjustments for the phase of menopause.
-            Discover the joy of crossing forty and adjusting our lifestyle to the changes happening in our bodies.
-            Small adjustments like nutrition, physical activity, and more can do wonders for how we feel daily.
-        </p>
-        <a href="/personalize" class="btn btn-primary btn-lg">Personalize</a>
-    </div>
-</body>
-</html>
+from flask import Flask, render_template, request, redirect, url_for, flash
+import sqlite3
+import os
+
+app = Flask(__name__)
+app.secret_key = 'supersecretkey'
+
+DATABASE = 'lifestyle.db'
+
+def init_db():
+    if not os.path.exists(DATABASE):
+        conn = sqlite3.connect(DATABASE)
+        cursor = conn.cursor()
+        cursor.execute('''
+            CREATE TABLE users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                age INTEGER NOT NULL,
+                email TEXT NOT NULL UNIQUE
+            )
+        ''')
+        cursor.execute('''
+            CREATE TABLE logs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                date TEXT NOT NULL,
+                symptom TEXT NOT NULL,
+                severity INTEGER NOT NULL,
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            )
+        ''')
+        conn.commit()
+        conn.close()
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        name = request.form['name']
+        age = request.form['age']
+        email = request.form['email']
+        conn = sqlite3.connect(DATABASE)
+        cursor = conn.cursor()
+        try:
+            cursor.execute('INSERT INTO users (name, age, email) VALUES (?, ?, ?)', (name, age, email))
+            conn.commit()
+            flash('Registration successful!', 'success')
+            return redirect(url_for('index'))
+        except sqlite3.IntegrityError:
+            flash('Email already registered!', 'danger')
+        finally:
+            conn.close()
+    return render_template('register.html')
+
+@app.route('/log', methods=['GET', 'POST'])
+def log():
+    if request.method == 'POST':
+        email = request.form['email']
+        date = request.form['date']
+        symptom = request.form['symptom']
+        severity = request.form['severity']
+        conn = sqlite3.connect(DATABASE)
+        cursor = conn.cursor()
+        cursor.execute('SELECT id FROM users WHERE email = ?', (email,))
+        user = cursor.fetchone()
+        if user:
+            user_id = user[0]
+            cursor.execute('INSERT INTO logs (user_id, date, symptom, severity) VALUES (?, ?, ?, ?)', (user_id, date, symptom, severity))
+            conn.commit()
+            flash('Log entry added!', 'success')
+        else:
+            flash('Email not found!', 'danger')
+        conn.close()
+    return render_template('log.html')
+
+@app.route('/recommendations', methods=['GET'])
+def recommendations():
+    email = request.args.get('email')
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
+    cursor.execute('SELECT id FROM users WHERE email = ?', (email,))
+    user = cursor.fetchone()
+    if user:
+        user_id = user[0]
+        cursor.execute('SELECT symptom, AVG(severity) as avg_severity FROM logs WHERE user_id = ? GROUP BY symptom', (user_id,))
+        logs = cursor.fetchall()
+        recommendations = []
+        for log in logs:
+            symptom, avg_severity = log
+            if symptom == 'hot flashes':
+                if avg_severity > 5:
+                    recommendations.append('Consider wearing light clothing and staying in cool environments.')
+                else:
+                    recommendations.append('Maintain current lifestyle, but monitor symptoms.')
+            elif symptom == 'night sweats':
+                if avg_severity > 5:
+                    recommendations.append('Keep your bedroom cool and use breathable bed linens.')
+                else:
+                    recommendations.append('Maintain current lifestyle, but monitor symptoms.')
+        conn.close()
+        return render_template('recommendations.html', recommendations=recommendations)
+    else:
+        conn.close()
+        flash('Email not found!', 'danger')
+        return redirect(url_for('index'))
+
+if __name__ == '__main__':
+    init_db()
+    app.run(debug=True)
