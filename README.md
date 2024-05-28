@@ -69,7 +69,8 @@ We welcome contributions to enhance the app. Here’s how you can help:
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
 
 ## Contact
-For any questions or feedback, please reach out to [your-email@example.com](mailto:your-email@example.com).
+For any questions or feedback, please reach out to [lifestyle.menopause@gmail.com](mailto:lifestyle.menopause@gmail.com).
+https://menopause.social
 
 ---
 
