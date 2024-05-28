@@ -18,8 +18,8 @@ This application is designed to help women during menopause by monitoring their 
 ### Installation
 1. **Clone the repository**:
     ```sh
-    git clone https://github.com/Diana1800/mls.git
-    cd mls
+    git clone https://github.com/Diana1800/MLS.git
+    cd MLS
     ```
 
 2. **Create a virtual environment**:
